@@ -1,7 +1,7 @@
 # Muraqib
 
 ## Introduction:
-Murakib is an AI-powered tool to detect the common used idioms in today's arab slang that is associated with bribery actions from speech or text.
+Muraqib is an AI-powered tool to detect the common used idioms in today's arab slang that is associated with bribery actions from speech or text.
 
 ## Components:
 1. Speech recognition for arabic (dialict-oriented).
