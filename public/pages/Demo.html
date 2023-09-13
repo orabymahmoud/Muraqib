@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html :class="{ 'theme-dark': dark }" x-data="data()" lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Audio File Upload</title>
+  <link rel="icon" type="image/x-icon" href="323.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/tailwind.output.css" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+  <script src="../assets/js/init-alpine.js"></script>
+</head>
+
+<body>
+  <div class="flex items-center min-h-screen p-6 bg-gray-50 dark:bg-gray-900">
+    <div class="flex-1 h-full max-w-4xl mx-auto overflow-hidden bg-white rounded-lg shadow-xl dark:bg-gray-800">
+      <div class="flex flex-col overflow-y-auto md:flex-row">
+        <div class="h-32 md:h-auto md:w-1/2">
+          <img aria-hidden="true" class="object-cover w-full h-full dark:hidden"
+            src="../assets/img/Blog_Applications-of-Voice-Recognition-Technology.JPG" alt="Audio Upload" />
+          <img aria-hidden="true" class="hidden object-cover w-full h-full dark:block"
+            src="../assets/img/Blog_Applications-of-Voice-Recognition-Technology.JPG" alt="Audio Upload" />
+        </div>
+        <div class="flex items-center justify-center p-6 sm:p-12 md:w-1/2">
+          <div class="w-full">
+            <h1 class="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">
+              Audio File Upload
+            </h1>
+            <label class="block text-sm">
+              <span class="text-gray-700 dark:text-gray-400">Select Audio File</span>
+              <input
+                class="block w-full mt-1 text-sm dark:border-gray-600 dark:bg-gray-700 focus:border-purple-400 focus:outline-none focus:shadow-outline-purple dark:text-gray-300 dark:focus:shadow-outline-gray form-input"
+                type="file" id="fileInput" />
+            </label>
+
+            <button
+              class="block w-full px-4 py-2 mt-4 text-sm font-medium leading-5 text-center text-white transition-colors duration-150 bg-purple-600 border border-transparent rounded-lg active:bg-purple-600 hover:bg-purple-700 focus:outline-none focus:shadow-outline-purple"
+              onclick="uploadAudio()">
+              Upload
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-4xl mx-auto mt-8" id="resultTable" style="display: none;">
+    <!-- With avatar -->
+    <h4 class="mb-4 text-lg font-semibold text-gray-600 dark:text-gray-300">
+      Bribery Discovered
+    </h4>
+    <div class="w-full mb-8 overflow-hidden rounded-lg shadow-xs">
+      <div class="w-full overflow-x-auto">
+        <table class="w-full whitespace-no-wrap" id="BriberyDiscovered">
+          <thead>
+            <tr
+              class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
+              <th class="px-4 py-3">IncidentID</th>
+              <th class="px-4 py-3">Type</th>
+              <th class="px-4 py-3">Status</th>
+              <th class="px-4 py-3">Date</th>
+              <th class="px-4 py-3">Detected time</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800" id="BriberyDiscoveredBody">
+
+          </tbody>
+        </table>
+      </div>
+      <div
+        class="grid px-4 py-3 text-xs font-semibold tracking-wide text-gray-500 uppercase border-t dark:border-gray-700 bg-gray-50 sm:grid-cols-9 dark:text-gray-400 dark:bg-gray-800">
+        <span class="flex items-center col-span-3">
+          Showing 21-30 of 100
+        </span>
+        <span class="col-span-2"></span>
+        <!-- Pagination -->
+        <span class="flex col-span-4 mt-2 sm:mt-auto sm:justify-end">
+          <nav aria-label="Table navigation">
+            <ul class="inline-flex items-center">
+              <li>
+                <button class="px-3 py-1 rounded-md rounded-l-lg focus:outline-none focus:shadow-outline-purple"
+                  aria-label="Previous">
+                  <svg aria-hidden="true" class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                    <path
+                      d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                      clip-rule="evenodd" fill-rule="evenodd"></path>
+                  </svg>
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+
+        function sendRequestAndGetJobId(data) {
+          return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+
+            xhr.addEventListener("readystatechange", function() {
+              if (this.readyState === 4) {
+                console.log(this.responseText);
+
+                // Extract job ID from the "operation-location" header
+                const operationLocation = this.getResponseHeader("operation-location");
+                const jobId = extractJobIdFromHeader(operationLocation);
+                resolve(jobId);
+              }
+            });
+
+            xhr.addEventListener("error", function() {
+              reject(new Error("Request failed"));
+            });
+
+            xhr.open("POST", "https://languageserviceresource5.cognitiveservices.azure.com/language/analyze-text/jobs?api-version=2022-10-01-preview");
+            xhr.setRequestHeader("Ocp-Apim-Subscription-Key", "10a680b963e74b64a15f3cfb870ff3ef");
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+            xhr.send(data);
+          });
+        }
+      
+
+
+      function extractJobIdFromHeader(headerValue) {
+        const regex = /jobs\/(\w+-\w+-\w+-\w+-\w+)/;
+        const match = regex.exec(headerValue);
+        if (match && match.length > 1) {
+          return match[1];
+        }
+        return null;
+      }
+
+    function performSpeechRecognition(fileContents) {
+      var progressBar = document.createElement('div');
+      progressBar.className = 'w-full h-4 bg-gray-200 rounded';
+
+      var progressFill = document.createElement('div');
+      progressFill.className = 'h-full bg-purple-600 rounded';
+
+      progressBar.appendChild(progressFill);
+
+      var progressContainer = document.createElement('div');
+      progressContainer.className = 'mt-4';
+      progressContainer.appendChild(progressBar);
+
+      document.body.appendChild(progressContainer);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", "https://eastus.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1?language=ar-EGY");
+      xhr.setRequestHeader("Ocp-Apim-Subscription-Key", "f4b6052a11e2473482c157412b82b84d");
+      xhr.setRequestHeader("Content-Type", "audio/wav");
+      xhr.setRequestHeader("Authorization", "Bearer eyJhbGciOiJFUzI1NiIsImtpZCI6ImtleTEiLCJ0eXAiOiJKV1QifQ.eyJyZWdpb24iOiJlYXN0dXMiLCJzdWJzY3JpcHRpb24taWQiOiI1ODU5NGY3ZjU0N2E0YjhjYmFhMjBiYzFiMjVhMjZlZCIsInByb2R1Y3QtaWQiOiJTcGVlY2hTZXJ2aWNlcy5GMCIsImNvZ25pdGl2ZS1zZXJ2aWNlcy1lbmRwb2ludCI6Imh0dHBzOi8vYXBpLmNvZ25pdGl2ZS5taWNyb3NvZnQuY29tL2ludGVybmFsL3YxLjAvIiwiYXp1cmUtcmVzb3VyY2UtaWQiOiIvc3Vic2NyaXB0aW9ucy83OWYzZTAwYy1iMDNjLTRiZDUtODA3MS1kN2Q2NGZkYmQ2YzgvcmVzb3VyY2VHcm91cHMvcWF0YXIvcHJvdmlkZXJzL01pY3Jvc29mdC5Db2duaXRpdmVTZXJ2aWNlcy9hY2NvdW50cy9tdXJha2FiIiwic2NvcGUiOiJzcGVlY2hzZXJ2aWNlcyIsImF1ZCI6InVybjptcy5zcGVlY2hzZXJ2aWNlcy5lYXN0dXMiLCJleHAiOjE2OTQ2MDEzODIsImlzcyI6InVybjptcy5jb2duaXRpdmVzZXJ2aWNlcyJ9.yToiKxVkDpp-UJ5ftY66t1cHDWaa91BtN8dxhLTro__sVCGtnkUbJDa6jlcsmqs41170AG6t52GReIUucUMD2A");
+
+      // Progress event handler
+      xhr.upload.onprogress = function (event) {
+        if (event.lengthComputable) {
+          var percentComplete = (event.loaded / event.total) * 100;
+          progressFill.style.width = percentComplete + '%';
+        }
+      };
+
+      xhr.onerror = function (error) {
+        console.error('Error:', error);
+        // Hide the progress bar in case of an error
+        document.body.removeChild(progressContainer);
+      };
+
+      xhr.onload = function () {
+
+        if (xhr.status === 200) {
+          console.log('Response:', xhr.responseText);
+          var response = JSON.parse(xhr.responseText);
+          var data = JSON.stringify({
+                    "tasks": [
+                      {
+                        "kind": "CustomSingleLabelClassification",
+                        "parameters": {
+                          "projectName": "testproject5",
+                          "deploymentName": "dialectModel"
+                        }
+                      }
+                    ],
+                    "displayName": "CustomTextPortal_CustomSingleLabelClassification",
+                    "analysisInput": {
+                      "documents": [
+                        {
+                          "id": "document_CustomSingleLabelClassification",
+                          "text": xhr.responseText,
+                          "language": "ar"
+                        }
+                      ]
+                    }
+                  }); 
+
+                  sendRequestAndGetJobId(data)
+                  .then(jobId => {
+                    console.log("Job ID:", jobId);
+                   
+
+                    // Call the API to check for bribery
+                      var apiEndpoint = 'https://languageserviceresource5.cognitiveservices.azure.com/language/analyze-text/jobs/'+jobId+'?api-version=2022-10-01-preview'; // no bribty
+                      // var apiEndpoint = 'https://mocki.io/v1/15fa9d56-8d06-455a-8f85-f53c1ca25198'; //bribery
+                      
+                      var apiRequest = new XMLHttpRequest();
+                      apiRequest.open('GET', apiEndpoint);
+                      apiRequest.setRequestHeader('Content-Type', 'application/json');
+                      apiRequest.setRequestHeader('Ocp-Apim-Subscription-Key', '10a680b963e74b64a15f3cfb870ff3ef');
+                      apiRequest.onload = function() {
+                        if (apiRequest.status === 200) {
+                          var apiResponse = JSON.parse(apiRequest.responseText);
+                          console.log('API Response:', apiResponse);
+                          
+                          // Handle the API response here
+                          if (
+                            apiResponse.tasks.items[0].results.documents[0].class[0].category === 'Bribery' &&
+                            parseFloat(apiResponse.tasks.items[0].results.documents[0].class[0].confidenceScore) > 0.5
+                          ) {
+                            console.log('File contains bribery');
+                            var promptText = 'The file contains potential bribery. Please review it carefully.';
+                            displayResponse_with_bribery();
+                            alert(promptText);
+                          } else if (
+                            apiResponse.tasks.items[0].results.documents[0].class[0].category === 'Bribery' &&
+                            parseFloat(apiResponse.tasks.items[0].results.documents[0].class[0].confidenceScore) <= 0.5
+                          ) {
+                            console.log('File does not contain bribery');
+                            displayResponse_without_bribery();
+                            // var promptText = 'The file does not contain potential bribery.';
+                            // alert(promptText);
+                          } else if (
+                            apiResponse.tasks.items[0].results.documents[0].class[0].category === 'NonBribery' &&
+                            parseFloat(apiResponse.tasks.items[0].results.documents[0].class[0].confidenceScore) > 0.5
+                          ) {
+                            console.log('File does not contain bribery');
+                            displayResponse_without_bribery();
+                            // var promptText = 'The file does not contain potential bribery.';
+                            // alert(promptText);
+                          } else if (
+                            apiResponse.tasks.items[0].results.documents[0].class[0].category === 'NonBribery' &&
+                            parseFloat(apiResponse.tasks.items[0].results.documents[0].class[0].confidenceScore) <= 0.5
+                          ) {
+                            console.log('File contains bribery');
+                            var promptText = 'The file contains potential bribery. Please review it carefully.';
+                            displayResponse_with_bribery();
+                            alert(promptText);
+                          }
+                        } else {
+                          console.error('API Request failed. Status:', apiRequest.status);
+                        }
+                      };
+
+                      apiRequest.onerror = function() {
+                        console.error('Error occurred while calling the API.');
+                      };
+
+                      var requestBody = {
+                        fileContent: response
+                      };
+
+                      setTimeout(() => {
+                        // Code to be executed after the delay
+                        console.log("After 3 seconds");
+                        apiRequest.send();
+                      }, 2000);
+                      
+                      // apiRequest.send(JSON.stringify(requestBody));
+                  })
+                  .catch(error => {
+                    console.error("Error:", error);
+                  });
+          
+          // displayResponse(xhr.responseText)
+          // Handle the response here
+        } else {
+          console.error('Request failed. Status:', xhr.status);
+        }
+        // Remove the progress bar once the request is completed
+        document.body.removeChild(progressContainer);
+      };
+
+      xhr.send(fileContents);
+    }
+
+    function readFileContent(file, callback) {
+        var reader = new FileReader();
+        reader.onload = function (event) {
+          var fileContent = event.target.result;
+          callback(fileContent);
+        };
+        reader.onerror = function (event) {
+          console.error('Error reading file:', event.target.error);
+          callback(null);
+        };
+
+        if (file instanceof Blob) {
+          reader.readAsArrayBuffer(file);
+        } else {
+          console.error('Invalid file parameter.');
+          callback(null);
+        }
+      }
+
+
+
+    function uploadAudio() {
+      // Display dummy response for testing
+      // var dummyResponse = "This is a dummy response.";
+      var fileInput = document.getElementById('fileInput');
+      var file = fileInput.files[0];
+      console.log('File path:', file);
+      if (file) {
+        readFileContent(file, function (fileContent) {
+          if (fileContent) {
+            // Call other functions or perform actions with the file content
+            response = performSpeechRecognition(fileContent);
+          } else {
+            console.log('Error reading file.');
+          }
+        });
+      } else {
+        console.log('No file selected.');
+      }
+
+    }
+
+
+
+    function displayResponse_with_bribery() {
+      var resultTable = document.getElementById('resultTable');
+      var resultBody = document.getElementById('BriberyDiscoveredBody');
+      // Show the progress bar for 3 minutes
+      var progressBar = document.createElement('div');
+      progressBar.className = 'w-full h-4 bg-gray-200 rounded';
+
+      var progressFill = document.createElement('div');
+      progressFill.className = 'h-full bg-purple-600 rounded';
+
+      progressBar.appendChild(progressFill);
+
+      var progressContainer = document.createElement('div');
+      progressContainer.className = 'mt-4';
+      progressContainer.appendChild(progressBar);
+
+      document.body.appendChild(progressContainer);
+
+      var duration = 0; // 3 minutes in seconds
+      var interval = 0; // Progress update interval in milliseconds
+      var progress = 0;
+
+      var progressInterval = setInterval(function () {
+        progress += interval / 1000;
+        var percent = (progress / duration) * 100;
+        progressFill.style.width = percent + '%';
+
+        if (progress >= duration) {
+          clearInterval(progressInterval);
+          document.body.removeChild(progressContainer);
+
+          resultTable.style.display = 'block';
+
+          var row = resultBody.insertRow();
+          row.className = 'text-gray-700 dark:text-gray-400';
+
+     
+          var cell1 = row.insertCell();
+          cell1.className = 'px-4 py-3 text-sm';
+          cell1.textContent = '#213';
+
+          var cell2 = row.insertCell();
+          cell2.className = 'px-4 py-3 text-sm';
+          cell2.textContent = 'Bribery';
+
+          var cell3 = row.insertCell();
+          cell3.className = 'px-4 py-3 text-xs';
+
+          var statusSpan = document.createElement('span');
+          statusSpan.className = 'px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full dark:bg-green-700 dark:text-green-100';
+          statusSpan.textContent = 'Detected';
+
+          cell3.appendChild(statusSpan);
+
+          var cell4 = row.insertCell();
+          cell4.className = 'px-4 py-3 text-sm';
+          cell4.textContent = '14/9/2023';
+
+          var cell5 = row.insertCell();
+          cell5.className = 'px-4 py-3 text-sm';
+          cell5.textContent = '8 : 15 Sec';
+        }
+      }, interval);
+
+
+    }
+
+    function displayResponse_without_bribery() {
+  var resultTable = document.getElementById('resultTable');
+  var resultBody = document.getElementById('BriberyDiscoveredBody');
+
+  resultTable.style.display = 'block';
+
+  var row = resultBody.insertRow();
+  row.className = 'text-gray-700 dark:text-gray-400';
+
+  var cell1 = row.insertCell();
+  cell1.className = 'px-4 py-3 text-sm';
+  cell1.textContent = '#214';
+
+
+  var cell2 = row.insertCell();
+  cell2.className = 'px-4 py-3 text-sm';
+  cell2.textContent = 'No';
+
+  var cell3 = row.insertCell();
+  cell3.className = 'px-4 py-3 text-xs';
+
+  var statusSpan = document.createElement('span');
+  statusSpan.className = 'px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100';
+  statusSpan.textContent = 'Not Detected';
+
+  cell3.appendChild(statusSpan);
+
+  var cell4 = row.insertCell();
+  cell4.className = 'px-4 py-3 text-sm';
+  cell4.textContent = '14/9/2023';
+
+  var cell5 = row.insertCell();
+  cell5.className = 'px-4 py-3 text-sm';
+  cell5.textContent = '';
+}
+
+</script>
+</body>
+
+</html>
